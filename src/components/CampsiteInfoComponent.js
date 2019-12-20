@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Card, CardImg, CardImgOverlay, CardText, CardBody, CardTitle, Breadcrumb, BreadcrumbItem, 
+import { Card, CardImg, CardText, CardBody, Breadcrumb, BreadcrumbItem, 
     Button, Modal, ModalHeader, ModalBody, Label } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import { Control, LocalForm, Errors } from 'react-redux-form';
@@ -7,22 +7,8 @@ import { Control, LocalForm, Errors } from 'react-redux-form';
 const required = val => val && val.length;
 const maxLength = len => val => !val || (val.length <= len);
 const minLength = len => val => val && (val.length >= len);
-const isNumber = val => !isNaN(+val);
 
-function RenderCampsite({campsite}) {
-    return (
-        <div className="col-md-5 m-1">
-            <Card>
-                <CardImg top src={campsite.image} alt={campsite.name} />
-                <CardBody>
-                    <CardText>{campsite.description}</CardText>
-                </CardBody>
-            </Card>
-        </div>
-    )
-}
-
-function RenderComments({comments}) {
+function RenderComments({comments, addComment, campsiteId}) {
     if (comments) {
         return (
             <div className="col-md-5 m-1">
@@ -38,11 +24,24 @@ function RenderComments({comments}) {
                         </div>
                     );
                 })}
-                <CommentForm></CommentForm>
+                <CommentForm campsiteId={campsiteId} addComment={addComment} />
             </div>
         );
     }
     return <div />;
+}
+
+function RenderCampsite({campsite}) {
+    return (
+        <div className="col-md-5 m-1">
+            <Card>
+                <CardImg top src={campsite.image} alt={campsite.name} />
+                <CardBody>
+                    <CardText>{campsite.description}</CardText>
+                </CardBody>
+            </Card>
+        </div>
+    )
 }
 
 function CampsiteInfo(props) {
@@ -61,7 +60,11 @@ function CampsiteInfo(props) {
                 </div>
                 <div className="row">
                     <RenderCampsite campsite={props.campsite} />
-                    <RenderComments comments={props.comments} />
+                    <RenderComments 
+                        comments={props.comments} 
+                        addComment={props.addComment}
+                        campsiteId={props.campsite.id}
+                    />
                 </div>
             </div>
         );
@@ -92,9 +95,9 @@ class CommentForm extends Component {
         });
     }
 
-    handleModal(event) {
-        alert(`Rating: ${event.rating} Author: ${event.author} text: ${event.text}`);
+    handleModal(values) {
         this.toggleModal();
+        this.props.addComment(this.props.campsiteId, values.rating, values.author, values.text);
     }
 
     render() {
@@ -109,11 +112,7 @@ class CommentForm extends Component {
                             <LocalForm onSubmit={(values => this.handleModal(values))}>
                                 <div className="form-group">
                                     <Label htmlFor="rating">Rating</Label>
-                                        <Control.select model=".rating" id="rating" name="rating" className="form-control"
-                                        validators={{
-                                            required,
-                                            isNumber
-                                        }}>
+                                        <Control.select model=".rating" id="rating" name="rating" className="form-control">
                                         <option>1</option>
                                         <option>2</option>
                                         <option>3</option>
